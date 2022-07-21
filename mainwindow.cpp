@@ -1,13 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include <stack>
 #include <QDebug>
 
-double firstNum,calcVal = 0.0;
- double labelNumber,secondNum = 0;
-bool userIsTypingSecondNumber(false);
-bool nextNumber(false);
-bool gbequals(false);
+using namespace std;
+bool gbEquals(false);
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -15,7 +12,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->label->setText(QString::number(calcVal));
+    ui->label->setText(QString::number(0.0));
+    ui->label_2->setText(QString::number(0.0));
     QPushButton *numButtons[10];
     for(int i =0;i<10;i++)
     {
@@ -31,11 +29,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton_Subtract,SIGNAL(released()),this,SLOT(binary_operation_pressed()));
     connect(ui->pushButton_Multiplication,SIGNAL(released()),this,SLOT(binary_operation_pressed()));
     connect(ui->pushButton_Divsion,SIGNAL(released()),this,SLOT(binary_operation_pressed()));
-
-    ui->pushButton_Addition->setCheckable(true);
-    ui->pushButton_Subtract->setCheckable(true);
-    ui->pushButton_Multiplication->setCheckable(true);
-    ui->pushButton_Divsion->setCheckable(true);
 }
 
 MainWindow::~MainWindow()
@@ -45,52 +38,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::digit_pressed()
 {
-    QPushButton * button = (QPushButton*)sender();
-    if(ui->label->text()=="0")
-    {
-            ui->label->setText(button->text());
-    }
-    else if(nextNumber)
-    {
-        if((ui->pushButton_Addition->isChecked()||ui->pushButton_Subtract->isChecked() ||
-            ui->pushButton_Multiplication->isChecked() || ui->pushButton_Divsion->isChecked())&&(!userIsTypingSecondNumber))
-        {
-            ui->label->setText(button->text());
-            userIsTypingSecondNumber = true;
-        }
-        else
-        {
-            if(ui->label->text().contains('.')&&button->text()=="0")
-            {
-                ui->label->setText(ui->label->text() + button->text());
-            }
-            else
-            {
-                ui->label->setText(ui->label->text()+button->text());
-            }
-        }
-    }
-    else
-    {
-        if((ui->pushButton_Addition->isChecked()||ui->pushButton_Subtract->isChecked() ||
-            ui->pushButton_Multiplication->isChecked() || ui->pushButton_Divsion->isChecked())&&(!userIsTypingSecondNumber))
-        {
-            ui->label->setText(ui->label->text()+' '+button->text());
-            userIsTypingSecondNumber = true;
-        }
-        else
-        {
-            if(ui->label->text().contains('.')&&button->text()=="0")
-            {
-                ui->label->setText(ui->label->text() + button->text());
-            }
-            else
-            {
-                ui->label->setText(ui->label->text()+button->text());
-            }
-        }
-
-    }
+    binary_operation_pressed();
 }
 
 
@@ -129,8 +77,6 @@ void MainWindow::on_pushButton_Clear_released()
     ui->pushButton_Multiplication->setChecked(false);
     ui->pushButton_Divsion->setChecked(false);
 
-    userIsTypingSecondNumber = false;
-
     ui->label->setText("0");
     ui->label_2->setText("0");
 }
@@ -138,57 +84,97 @@ void MainWindow::on_pushButton_Clear_released()
 
 void MainWindow::on_pushButton_Equals_released()
 {
-    if(gbequals)
+    if(gbEquals)
      {
-        ui->label_2->setText(ui->label_2->text()+' '+ui->label->text());
-        gbequals =false;
+        ui->label_2->setText(ui->label->text());
      }
-    QString newLabel;
-    secondNum = ui->label->text().toDouble();
-    if(ui->pushButton_Addition->isChecked())
-    {
-        labelNumber = firstNum + secondNum;
-        newLabel = QString::number(labelNumber,'g',15);
-        ui->label->setText(newLabel);
-        ui->pushButton_Addition->setChecked(false);
-
-    }
-    else if(ui->pushButton_Subtract->isChecked())
-    {
-        labelNumber = firstNum - secondNum;
-        newLabel = QString::number(labelNumber,'g',15);
-        ui->label->setText(newLabel);
-        ui->pushButton_Subtract->setChecked(false);
-        gbequals =false;
-    }
-    else if(ui->pushButton_Multiplication->isChecked())
-    {
-        labelNumber = firstNum * secondNum;
-        newLabel = QString::number(labelNumber,'g',15);
-        ui->label->setText(newLabel);
-        ui->pushButton_Multiplication->setChecked(false);
-    }
-    else if(ui->pushButton_Divsion->isChecked())
-    {
-        labelNumber = firstNum / secondNum;
-        newLabel = QString::number(labelNumber,'g',15);
-        ui->label->setText(newLabel);
-        ui->pushButton_Divsion->setChecked(false);
-    }
-    userIsTypingSecondNumber = false;
+     string equation = ui->label->text().toStdString();
+     string str = infixToPostfix(equation);
+     double result  = postfixEval(str);
+     ui->label->setText(QString::number(result,'g',15));
+     gbEquals=false;
 }
 
 void MainWindow::binary_operation_pressed()
 {
      QPushButton * button = (QPushButton*)sender();
-
-     firstNum = ui->label->text().toDouble();
-
-     ui->label_2->setText(ui->label->text()+' '+button->text());
-
-     gbequals = true;
-     nextNumber = true;
-
-    button->setChecked(true);
+     if(ui->label->text()=="0")
+     {
+         ui->label->setText(button->text());
+     }
+     else
+     {
+      ui->label->setText(ui->label->text()+' '+button->text());
+      gbEquals = true;
+     }
 }
+
+// A Function to return precedence of operators
+int MainWindow:: prec(char ch)
+{
+    if(ch == '+' || ch == '-')
+    {
+        return 1;              //Precedence of + or - is 1
+    }
+    else if(ch == '*' || ch == '/')
+    {
+        return 2;            //Precedence of * or / is 2
+    }else if(ch == '^') {
+        return 3;            //Precedence of ^ is 3
+    }else {
+        return 0;
+    }
+}
+
+// A Function to convert infix expression to postfix expression
+string MainWindow:: infixToPostfix(string s)
+{
+    stack<char> st;
+    string result;
+
+    for(int i = 0; i < s.length(); i++)
+    {
+        char c = s[i];
+        if(c==' ')continue;
+
+        // If the character is an operand, add it to output string.
+        else if(c >= '0' && c <= '9')
+        {
+            result +=scanNum(i,s);
+            result +=" ";
+        }
+        //If an operator is scanned
+        else
+        {
+            while(!st.empty() && prec(s[i]) <= prec(st.top()))
+            {
+                result += st.top();
+                result +=" ";
+                st.pop();
+            }
+            st.push(c);
+        }
+    }
+    // Pop all the remaining elements from the stack
+    while(!st.empty()) {
+        result += st.top();
+        result +=" ";
+        st.pop();
+    }
+    return result ;
+}
+
+string MainWindow::scanNum(int &i,string str)
+{
+   string value;
+   value = str[i++];
+   while(str[i]!=' ' && i<str.length()){
+       value+=str[i++];
+   }
+   return value;
+}
+
+
+
+
 
