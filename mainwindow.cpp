@@ -163,12 +163,62 @@ string MainWindow:: infixToPostfix(string s)
     }
     return result ;
 }
+// Function to evaluate a given postfix expression
+double MainWindow::postfixEval(string postfix)
+{
+    double a, b;
+    stack<double> stk;
+    for(int i=0; i<postfix.length(); i++){
+        if(isOperator(postfix[i]) == 1){
+            a = stk.top();
+            stk.pop();
+            b = stk.top();
+            stk.pop();
+            stk.push(operation(a, b, postfix[i]));
+        }else if(isOperand(postfix[i]) == 1){
+            stk.push(stoi(scanNum(i,postfix)));
+        }
+    }
+    return stk.top();
+}
 
+int MainWindow::isOperator(char ch)
+{
+    if(ch == '+'|| ch == '-'|| ch == '*'|| ch == '/' || ch == '^' )
+        return 1;
+    else
+        return 0;
+}
+
+int MainWindow::isOperand(char ch){
+    if(ch >= '0' && ch <= '9')
+        return 1;
+    else
+        return 0;
+}
+
+double MainWindow::operation(double a, double b, char op)
+{
+
+    if(op == '+')
+        return (b+a);
+    else if(op == '-')
+        return b-a;
+    else if(op == '*')
+        return b*a;
+    else if(op == '/')
+        return b/a;
+    else if(op == '^')
+        return (double)pow(b,a);
+    else
+        return INT_MIN;
+}
 string MainWindow::scanNum(int &i,string str)
 {
    string value;
    value = str[i++];
-   while(str[i]!=' ' && i<str.length()){
+   while(str[i]!=' ' && i<str.length())
+   {
        value+=str[i++];
    }
    return value;
