@@ -10,10 +10,12 @@ CONFIG += c++17
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    postfix.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    postfix.h
 
 FORMS += \
     mainwindow.ui

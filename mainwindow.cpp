@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <stack>
+#include<iostream>
 #include <QDebug>
+#include "postfix.h"
 
 using namespace std;
 bool gbEquals(false);
@@ -89,8 +90,7 @@ void MainWindow::on_pushButton_Equals_released()
         ui->label_2->setText(ui->label->text());
      }
      string equation = ui->label->text().toStdString();
-     string str = infixToPostfix(equation);
-     double result  = postfixEval(str);
+     int result  = infixToPostfix(equation);
      ui->label->setText(QString::number(result,'g',15));
      gbEquals=false;
 }
@@ -104,127 +104,10 @@ void MainWindow::binary_operation_pressed()
      }
      else
      {
-      ui->label->setText(ui->label->text()+' '+button->text());
+      ui->label->setText(ui->label->text()+button->text());
       gbEquals = true;
      }
 }
-
-// A Function to return precedence of operators
-int MainWindow:: prec(char ch)
-{
-    if(ch == '+' || ch == '-')
-    {
-        return 1;              //Precedence of + or - is 1
-    }
-    else if(ch == '*' || ch == '/')
-    {
-        return 2;            //Precedence of * or / is 2
-    }else if(ch == '^') {
-        return 3;            //Precedence of ^ is 3
-    }else {
-        return 0;
-    }
-}
-
-// A Function to convert infix expression to postfix expression
-string MainWindow:: infixToPostfix(string s)
-{
-    stack<char> st;
-    string result;
-
-    for(int i = 0; i < s.length(); i++)
-    {
-        char c = s[i];
-        if(c==' ')continue;
-
-        // If the character is an operand, add it to output string.
-        else if(c >= '0' && c <= '9')
-        {
-            result +=scanNum(i,s);
-            result +=" ";
-        }
-        //If an operator is scanned
-        else
-        {
-            while(!st.empty() && prec(s[i]) <= prec(st.top()))
-            {
-                result += st.top();
-                result +=" ";
-                st.pop();
-            }
-            st.push(c);
-        }
-    }
-    // Pop all the remaining elements from the stack
-    while(!st.empty()) {
-        result += st.top();
-        result +=" ";
-        st.pop();
-    }
-    return result ;
-}
-// Function to evaluate a given postfix expression
-double MainWindow::postfixEval(string postfix)
-{
-    double a, b;
-    stack<double> stk;
-    for(int i=0; i<postfix.length(); i++){
-        if(isOperator(postfix[i]) == 1){
-            a = stk.top();
-            stk.pop();
-            b = stk.top();
-            stk.pop();
-            stk.push(operation(a, b, postfix[i]));
-        }else if(isOperand(postfix[i]) == 1){
-            stk.push(stoi(scanNum(i,postfix)));
-        }
-    }
-    return stk.top();
-}
-
-int MainWindow::isOperator(char ch)
-{
-    if(ch == '+'|| ch == '-'|| ch == '*'|| ch == '/' || ch == '^' )
-        return 1;
-    else
-        return 0;
-}
-
-int MainWindow::isOperand(char ch){
-    if(ch >= '0' && ch <= '9')
-        return 1;
-    else
-        return 0;
-}
-
-double MainWindow::operation(double a, double b, char op)
-{
-
-    if(op == '+')
-        return (b+a);
-    else if(op == '-')
-        return b-a;
-    else if(op == '*')
-        return b*a;
-    else if(op == '/')
-        return b/a;
-    else if(op == '^')
-        return (double)pow(b,a);
-    else
-        return INT_MIN;
-}
-string MainWindow::scanNum(int &i,string str)
-{
-   string value;
-   value = str[i++];
-   while(str[i]!=' ' && i<str.length())
-   {
-       value+=str[i++];
-   }
-   return value;
-}
-
-
 
 
 
