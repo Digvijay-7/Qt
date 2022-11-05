@@ -1,11 +1,16 @@
+#define CATCH_CONFIG_RUNNER
+#include "catch.hpp"
 #include "mainwindow.h"
-
 #include <QApplication>
+
+
+#define UNIT_TEST_ENABLED
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
-    return a.exec();
+    Catch::Session().run(argc,argv);
+   return a.exec();
 }

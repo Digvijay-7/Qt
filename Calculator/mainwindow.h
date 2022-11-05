@@ -5,6 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
+using namespace std;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -20,8 +21,6 @@ private:
 
 private slots:
     void digit_pressed();
-
-
 
     void on_pushButton_Decimal_released();
     void unary_operation_pressed();
